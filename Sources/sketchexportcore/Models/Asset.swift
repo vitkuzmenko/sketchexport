@@ -30,17 +30,22 @@ class Asset {
 extension Asset: Encodable {
     
     enum CodingKeys: String, CodingKey {
-        case images, info
+        case images, info, properties
     }
  
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(items, forKey: .images)
         try container.encode(getInfo(), forKey: .info)
+        try container.encode(getProperties(), forKey: .properties)
     }
     
     func getInfo() -> AssetInfo {
         return AssetInfo(version: 1, author: "slicer")
+    }
+    
+    func getProperties() -> AssetProperties {
+        return AssetProperties(preservesVectorRepresentation: true)
     }
     
 }
