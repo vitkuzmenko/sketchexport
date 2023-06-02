@@ -18,11 +18,13 @@ public final class CommandLineTool {
     
     public func run() throws {
         let timestamp = TimestampDiffer(input: sketchFile, rootFolder: assetsFile)
-        
+
         if try !timestamp.shouldExport() {
             print("Sketch File not modified. Skipping exporting.")
             exit(0)
         }
+        
+        let start = Date()
         
         let inspector = SlicesInspector(sketchtoolExecutable: sketchtoolExecutable, input: sketchFile)
         let output = try inspector.read()
@@ -34,6 +36,10 @@ public final class CommandLineTool {
         try assetsExporter.export()
         
         try timestamp.writeCurrentTimestamp()
+        
+        let diff = Date().timeIntervalSince(start)
+        
+        print("Export Completed in", diff)
     }
     
 }

@@ -37,16 +37,19 @@ class SlicesInspector {
     }
     
     func read() throws -> Output {
+        
         let process = getListSlicesProcess()
         process.launch()
+        
+        print("commandSLice", process.arguments!.joined(separator: " "))
+        
 //        process.waitUntilExit()
         
-        
-        sleep(2)
+//        sleep(2)
         
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         
-        if process.terminationStatus == 1 {
+        if data.isEmpty {
             let string = String(data: data, encoding: .utf8)
             throw SlicesInspectorError.fileReading(string)
         }

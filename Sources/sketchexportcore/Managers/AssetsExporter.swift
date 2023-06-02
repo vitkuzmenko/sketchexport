@@ -61,6 +61,8 @@ class AssetsExporter {
                 try removeItem(at: path)
             }
             
+            let group = DispatchGroup()
+            
             for asset in assets {
                 
                 let relativePath = getPath(for: asset)
@@ -70,11 +72,22 @@ class AssetsExporter {
                 try writeContentsJSON(for: asset, at: contentsJSONPath)
                 
                 for assetItem in asset.items {
-                    let filePath = getFilePath(for: assetItem, relative: relativePath)
-                    try writeFile(for: assetItem, at: filePath, relativePath: relativePath)
+                    group.enter()
+                    DispatchQueue.global().async {
+                        do {
+                            let filePath = self.getFilePath(for: assetItem, relative: relativePath)
+                            try self.writeFile(for: assetItem, at: filePath, relativePath: relativePath)
+                            group.leave()
+                        } catch {
+                            
+                        }
+                    }
                 }
             
             }
+            
+            group.wait()
+            
         } catch {
             throw error
         }
@@ -145,7 +158,9 @@ class AssetsExporter {
     
     private func writeFile(for assetItem: AssetItem, at path: String, relativePath: String) throws {
         print("write AssetItem to \(path)")
+        
         let process = getExportSlicesProcess(for: assetItem, at: relativePath)
+//        print("command", process.arguments!.joined(separator: " "))
         process.launch()
         process.waitUntilExit()
         
@@ -166,6 +181,7 @@ class AssetsExporter {
     private func getExportSlicesProcess(for assetItem: AssetItem, at relativePath: String) -> Process {
         let process = Process()
         process.launchPath = "/usr/bin/env"
+        process.qualityOfService = .userInitiated
         process.arguments = [sketchtoolExecutable, "export", "slices", input, "--item=" + assetItem.slice.id, "--output=" + relativePath]
         return process
     }
